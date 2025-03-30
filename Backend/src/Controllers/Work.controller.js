@@ -71,7 +71,7 @@ const deleteOneTask = async (req, res) => {
   try {
     const response = await Work.deleteOne({ _id: id });
 
-    if(response) {
+    if (response) {
       return res.send({
         status: true,
         data: response
@@ -90,4 +90,19 @@ const deleteOneTask = async (req, res) => {
   }
 }
 
-export { insert, getWorkById, updateStatus,deleteOneTask };
+const getallWork = async (req, res) => {
+  try {
+    const response = await Work.find({});
+    return res.send({
+      status: true,
+      data: response,
+    });
+  } catch (error) {
+    return res.send({
+      status: false,
+      message: error.message,
+    });
+  }
+}
+
+export { insert, getWorkById, updateStatus, deleteOneTask, getallWork };

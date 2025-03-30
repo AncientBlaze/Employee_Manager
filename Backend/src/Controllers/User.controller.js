@@ -11,7 +11,7 @@ const insert = async (req, res) => {
     const response = await User.insertOne(user);
     return res.send({
       success: true,
-      message: "User added successfully",
+      message: "Employee added successfully",
       data: response,
     });
   } catch (error) {

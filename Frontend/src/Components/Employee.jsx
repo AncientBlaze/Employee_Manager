@@ -11,25 +11,20 @@ function Employee() {
   const [workList, setWorkList] = useState([]);
   const [length, setLength] = useState(0);
 
-  // Fetch employee and task data
   const fetchData = async () => {
     try {
-      const [res1, res2] = await Promise.all([
-        axios.post("http://localhost:2525/user/getUserById", { id }),
-        axios.post("http://localhost:2525/work/getWorkById", { id }),
+      const [userRes, taskRes] = await Promise.all([
+        axios.post("http://localhost:3000/user/getUserById", { id }),
+        axios.post("http://localhost:3000/work/getWorkById", { id }),
       ]);
 
-      const updatedLength = res2.data.data.length;
-      setLength(updatedLength);
-
-      console.log(res1.data.data, res2.data.data);
-
-      if (res1.data.status && res2.data.status) {
-        setEmpDetails(res1.data.data[0] || {});
-        setWorkList(res2.data.data || []);
+      if (userRes.data.status && taskRes.data.status) {
+        setEmpDetails(userRes.data.data[0] || {});
+        setWorkList(taskRes.data.data || []);
+        setLength(taskRes.data.data.length);
       }
     } catch (error) {
-      console.log("Error from fetchData: ", error);
+      console.error("Error fetching data:", error);
     }
   };
 
@@ -38,172 +33,143 @@ function Employee() {
   }, []);
 
   const completeTask = async (workID) => {
-    const data1 = {
-      id,
-      taskType: "completedTask",
-      operation: "increase",
-    };
-    const data2 = {
-      id,
-      taskType: "acttask",
-      operation: "decrease",
-    };
-    const data3 = {
-      id: workID,
-      status: "Completed",
-    };
-    console.log(data1, data2);
+    const data = [
+      { id, taskType: "completedTask", operation: "increase" },
+      { id, taskType: "acttask", operation: "decrease" },
+      { id: workID, status: "Completed" },
+    ];
+
     try {
-      const [res1, res2, res3] = await Promise.all([
-        axios.post("http://localhost:2525/user/updateNewTask", data1),
-        axios.post("http://localhost:2525/user/updateNewTask", data2),
-        axios.post("http://localhost:2525/work/updateStatus", data3),
+      await Promise.all([
+        axios.post("http://localhost:3000/user/updateNewTask", data[0]),
+        axios.post("http://localhost:3000/user/updateNewTask", data[1]),
+        axios.post("http://localhost:3000/work/updateStatus", data[2]),
       ]);
       fetchData();
     } catch (error) {
-      console.log("Error updating task:", error);
+      console.error("Error updating task:", error);
     }
   };
 
   const failedTask = async (workID) => {
-    const data1 = {
-      id,
-      taskType: "failed",
-      operation: "increase",
-    };
-    const data2 = {
-      id,
-      taskType: "acttask",
-      operation: "decrease",
-    };
-    const data3 = {
-      id: workID,
-      status: "failed",
-    };
-    console.log(data1, data2);
+    const data = [
+      { id, taskType: "failed", operation: "increase" },
+      { id, taskType: "acttask", operation: "decrease" },
+      { id: workID, status: "Failed" },
+    ];
+
     try {
-      const [res1, res2, res3] = await Promise.all([
-        axios.post("http://localhost:2525/user/updateNewTask", data1),
-        axios.post("http://localhost:2525/user/updateNewTask", data2),
-        axios.post("http://localhost:2525/work/updateStatus", data3),
+      await Promise.all([
+        axios.post("http://localhost:3000/user/updateNewTask", data[0]),
+        axios.post("http://localhost:3000/user/updateNewTask", data[1]),
+        axios.post("http://localhost:3000/work/updateStatus", data[2]),
       ]);
       fetchData();
     } catch (error) {
-      console.log("Error updating task:", error);
+      console.error("Error updating task:", error);
     }
   };
 
-  // Log out function
+
   const logOut = async () => {
     try {
-      const res = await axios.post("http://localhost:2525/user/deleteNewTAsk", {
-        id,
-      });
-      console.log(res.data);
+      const res = await axios.post("http://localhost:3000/user/deleteNewTask", { id });
       if (res.data.status) {
         navigate("/");
-      } else {
-        console.log(res.data);
       }
     } catch (error) {
-      console.log("Error from logOut: ", error);
+      console.error("Error logging out:", error);
     }
   };
 
   return (
     <div
-      className={`w-full bg-black px-20 py-10 ${
-        length == 0 ? "h-screen" : "h-full"
+      className={`min-h-screen bg-gray-900 text-white px-10 py-8 ${
+        length === 0 ? "h-screen" : "h-full"
       }`}
     >
-      <p className="text-white text-4xl font-semibold">Hello 👋</p>
-
-      <div className="w-full flex justify-between mt-5 font-bold">
-        <p className="text-white text-4xl">
-          {empDetails.empName || "Employee"}
-        </p>
+      <header className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold text-blue-400 hover:animate-pulse">
+          Welcome {" "}
+          {empDetails.empName
+            ? empDetails.empName.charAt(0).toUpperCase() +
+              empDetails.empName.slice(1)
+            : "Employee"}
+        </h1>
         <button
           onClick={logOut}
-          className="px-5 py-3 rounded-lg bg-green-500 text-white text-2xl font-medium border-none outline-none"
+          className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all hover:scale-105 transform"
         >
           Log Out
         </button>
-      </div>
+      </header>
 
-      <div className="w-full flex justify-between items-center mt-20 gap-5">
+      <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
         {[
-          {
-            label: "New Task",
-            value: empDetails.newTask || 0,
-            color: "bg-blue-400",
-          },
-          {
-            label: "Active Task",
-            value: empDetails.acttask || 0,
-            color: "bg-green-400",
-          },
-          {
-            label: "Completed Task",
-            value: empDetails.completedTask || 0,
-            color: "bg-yellow-400",
-          },
-          {
-            label: "Failed Task",
-            value: empDetails.failed || 0,
-            color: "bg-pink-400",
-          },
+          { label: "New Tasks", value: empDetails.newTask || 0, color: "bg-blue-500" },
+          { label: "Active Tasks", value: empDetails.acttask || 0, color: "bg-green-500" },
+          { label: "Completed Tasks", value: empDetails.completedTask || 0, color: "bg-yellow-500" },
+          { label: "Failed Tasks", value: empDetails.failed || 0, color: "bg-red-500" },
         ].map((stat, index) => (
           <div
             key={index}
-            className={`w-1/4 h-auto ${stat.color} rounded-lg p-10`}
+            className={`p-6 rounded-lg shadow-lg ${stat.color} text-center hover:shadow-2xl transform hover:scale-105 transition-all`}
           >
-            <p className="mb-5 text-white text-4xl font-medium">{stat.value}</p>
-            <p className="text-white text-2xl font-medium">{stat.label}</p>
+            <p className="text-3xl font-bold text-white">{stat.value}</p>
+            <p className="text-lg font-medium text-white mt-2">{stat.label}</p>
           </div>
         ))}
-      </div>
-
-      <div className="w-full h-auto mt-40 flex flex-row overflow-x-auto gap-10 wrapper no-scrollbar">
-        {workList.map((task, index) => (
-          <div
-            key={index}
-            className="w-[450px] h-[400px] p-10 rounded-lg bg-pink-400 flex flex-col"
-          >
-            <div className="w-full flex justify-between mb-5">
-              <p className="text-white font-medium p-2 bg-red-600 rounded-md">
-                {task.category}
-              </p>
-              <p className="text-white font-normal">{task.date}</p>
-            </div>
-
-            <p className="text-white font-semibold text-3xl">{task.title}</p>
-            <p className="text-white font-medium text-2xl mt-5">{task.work}</p>
-
-            <div className="w-full flex justify-between mt-10">
-              {task.status === "pending" ? (
-                <>
-                  <button
-                    onClick={() => completeTask(task._id)}
-                    className="hover:shadow-myShadow bg-green-400 px-5 py-2 text-white font-medium rounded-md"
+      </section>
+      <section>
+        <h2 className="text-3xl font-semibold text-blue-400 mb-6 hover:underline">
+          Task List
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {workList.map((task, index) => (
+            <div
+              key={index}
+              className="bg-gray-800 p-6 rounded-lg shadow-lg flex flex-col justify-between hover:shadow-2xl transform hover:scale-105 transition-all"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <span className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md">
+                  {task.category}
+                </span>
+                <span className="text-gray-400 text-sm">{task.date}</span>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">{task.title}</h3>
+              <p className="text-gray-300 mb-4">{task.work}</p>
+              <div className="flex justify-end gap-5 items-center">
+                {task.status === "pending" ? (
+                  <>
+                    <button
+                      onClick={() => completeTask(task._id)}
+                      className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm hover:scale-105 transform transition-all"
+                    >
+                      Mark as Complete
+                    </button>
+                    <button
+                      onClick={() => failedTask(task._id)}
+                      className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm hover:scale-105 transform transition-all"
+                    >
+                      Mark as Failed
+                    </button>
+                  </>
+                ) : (
+                  <p
+                    className={`text-sm font-medium ${
+                      task.status === "Completed"
+                        ? "text-green-400"
+                        : "text-red-400"
+                    }`}
                   >
-                    Mark as Complete
-                  </button>
-                  <button
-                    onClick={() => failedTask(task._id)}
-                    className="hover:shadow-myShadow bg-red-400 px-5 py-2 text-white font-medium rounded-md"
-                  >
-                    Mark as Failed
-                  </button>
-                </>
-              ) : task.status === "Completed" ? (
-                <p className="text-white font-medium">Completed</p>
-              ) : (
-                <p className="text-white font-medium">Failed</p>
-              )}
+                    {task.status}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import toast from "react-hot-toast"
+import Sidebar from "./Sidebar";
 
 function EmployeeDetails() {
   const { id } = useParams();
@@ -10,6 +10,7 @@ function EmployeeDetails() {
 
   const [empDetails, setEmpDetails] = useState({});
   const [workList, setWorkList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const logOut = () => {
     navigate("/");
@@ -17,7 +18,7 @@ function EmployeeDetails() {
 
   const deleteTask = async (taskID) => {
     try {
-      const res = await axios.post("http://localhost:2525/work/deleteOneTask", {
+      const res = await axios.post("http://localhost:3000/work/deleteOneTask", {
         id: taskID,
       });
 
@@ -25,27 +26,33 @@ function EmployeeDetails() {
         toast.success("Task deleted successfully");
         fetchData();
       } else {
-        toast.error("Task not deleted");
+        toast.error("Failed to delete task");
       }
     } catch (error) {
       console.error("Error deleting task:", error);
+      toast.error("Error deleting task");
     }
   };
 
   const fetchData = async () => {
     try {
+      setIsLoading(true);
       const [userRes, workRes] = await Promise.all([
-        axios.post("http://localhost:2525/user/getUserById", { id }),
-        axios.post("http://localhost:2525/work/getWorkById", { id }),
+        axios.post("http://localhost:3000/user/getUserById", { id }),
+        axios.post("http://localhost:3000/work/getWorkById", { id }),
       ]);
 
-      console.log(userRes.data.data[0], userRes.data.status);
       if (userRes.data.status && workRes.data.status) {
         setEmpDetails(userRes.data.data[0] || {});
         setWorkList(workRes.data.data || []);
+      } else {
+        toast.error("Failed to fetch employee details or tasks");
       }
     } catch (error) {
       console.error("Error fetching data:", error);
+      toast.error("Error fetching data");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -54,115 +61,90 @@ function EmployeeDetails() {
   }, []);
 
   return (
-    <div className="w-full h-auto bg-black px-20 py-10">
-      <p className="text-white text-4xl font-semibold">
-        Welcome to Employee Details
-      </p>
-
-      {/* Employee Header */}
-      <div className="w-full flex justify-between mt-5 font-bold">
-        <p className="text-white text-4xl">
+    <div className="min-h-screen bg-gray-900 text-white px-10 py-8">
+      <Sidebar />
+      <header className="flex justify-between items-center mb-8 ml-64">
+        <h1 className="text-4xl font-bold text-blue-400">
           {empDetails.empName || "Loading..."}
-        </p>
+        </h1>
         <button
           onClick={logOut}
-          className="px-5 py-3 rounded-lg bg-green-500 text-white text-2xl font-medium"
+          className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-all"
         >
           Log Out
         </button>
-      </div>
-
-      {/* Employee Task Stats */}
-      <div className="w-full flex justify-between items-center mt-20 gap-5">
+      </header>
+      <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 ml-64">
         {[
-          {
-            label: "New Task",
-            value: empDetails.newTask,
-            color: "bg-blue-400",
-          },
-          {
-            label: "Active Task",
-            value: empDetails.acttask,
-            color: "bg-green-400",
-          },
-          {
-            label: "Completed Task",
-            value: empDetails.completedTask,
-            color: "bg-yellow-400",
-          },
-          {
-            label: "Failed Task",
-            value: empDetails.failed,
-            color: "bg-pink-400",
-          },
+          { label: "New Tasks", value: empDetails.newTask, color: "bg-blue-500" },
+          { label: "Active Tasks", value: empDetails.acttask, color: "bg-green-500" },
+          { label: "Completed Tasks", value: empDetails.completedTask, color: "bg-yellow-500" },
+          { label: "Failed Tasks", value: empDetails.failed, color: "bg-red-500" },
         ].map((stat, index) => (
           <div
             key={index}
-            className={`w-1/4 h-auto ${stat.color} rounded-lg p-10`}
+            className={`p-6 rounded-lg shadow-lg ${stat.color} text-center`}
           >
-            <p className="mb-5 text-white text-4xl font-medium">
-              {stat.value || 0}
-            </p>
-            <p className="text-white text-2xl font-medium">{stat.label}</p>
+            <p className="text-3xl font-bold text-white">{stat.value || 0}</p>
+            <p className="text-lg font-medium text-white mt-2">{stat.label}</p>
           </div>
         ))}
-      </div>
+      </section>
 
-      {/* Task List */}
-      <div className={`w-full mt-40 flex overflow-x-auto gap-10 wrapper no-scrollbar`}>
-        {workList.length === 0 ? (
-          <p className="text-white text-xl h-screen">No tasks available</p>
+      <section className="bg-gray-800 p-6 rounded-lg shadow-lg mb-12 ml-64">
+        <h2 className="text-3xl font-semibold text-blue-400 mb-6">Task List</h2>
+        {isLoading ? (
+          <p className="text-gray-400">Loading tasks...</p>
+        ) : workList.length === 0 ? (
+          <p className="text-gray-400">No tasks available</p>
         ) : (
-          workList.map((task, index) => (
-            <div
-              key={index}
-              className="w-[400px] h-[400px] p-10 rounded-lg bg-pink-400 flex flex-col"
-            >
-              {/* Task Header */}
-              <div className="flex justify-between mb-5">
-                <p className="text-white font-medium p-2 bg-red-600 rounded-md">
-                  {task.category}
-                </p>
-                <p className="text-white font-normal">{task.date}</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {workList.map((task, index) => (
+              <div
+                key={index}
+                className="bg-gray-800 p-6 rounded-lg shadow-lg flex flex-col justify-between"
+              >
 
-              {/* Task Details */}
-              <p className="text-white font-semibold text-3xl">{task.title}</p>
-              <p className="w-full text-white font-medium text-2xl mt-5">
-                {task.work}
-              </p>
+                <div className="flex justify-between items-center mb-4">
+                  <span className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md">
+                    {task.category}
+                  </span>
+                  <span className="text-gray-400 text-sm">{task.date}</span>
+                </div>
 
-              {/* Task Status & Actions */}
-              <div className="flex justify-between mt-10">
-                {task.status === "pending" ? (
-                  <p className="text-white text-xl">Working on this task</p>
-                ) : task.status === "Completed" ? (
-                  <>
-                    <p className="text-white font-medium">Completed</p>
-                    <button
-                      className="px-5 py-3 rounded-lg bg-red-500 text-white text-xl font-medium"
-                      onClick={() => deleteTask(task._id)}
-                    >
-                      Delete Task
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-white text-xl font-medium">Failed</p>
-                    <button
-                      onClick={() => deleteTask(task._id)}
-                      className="px-5 py-3 rounded-lg bg-red-500 text-white text-xl font-medium"
-                    >
-                      Delete Task
-                    </button>
-                  </>
-                )}
+
+                <h3 className="text-xl font-bold text-white mb-2">{task.title}</h3>
+                <p className="text-gray-300 mb-4">{task.work}</p>
+
+
+                <div className="flex justify-between items-center">
+                  <span
+                    className={`text-sm font-medium ${task.status === "Completed"
+                        ? "text-green-400"
+                        : task.status === "Failed"
+                          ? "text-red-400"
+                          : "text-yellow-400"
+                      }`}
+                  >
+                    {task.status}
+                    {console.log(!(task.status === "Pending"))}
+
+                  </span>
+                  <button
+                    disabled={!(task.status === "Pending")}
+                    onClick={() => {
+                      deleteTask(task._id)
+                    }}
+                    className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm"
+                  >
+                    Delete Task
+                  </button>
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
-      </div>
-      <ToastContainer />
+      </section>
     </div>
   );
 }

@@ -15,12 +15,11 @@ app.use(cors());
 app.use('/user', userRouter);
 app.use('/work', workRouter);
 
-mongoose.connect(process.env.url).then(() =>{
+mongoose.connect(process.env.url).then(() => {
     console.log("Connected to DB");
 
     app.listen(process.env.port, () => {
         console.log(`Server is running on port ${process.env.port}`);
-
     })
 }).catch((err) => {
     console.log(err);

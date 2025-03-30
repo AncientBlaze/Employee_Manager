@@ -10,7 +10,7 @@ import {
 
 const router = express.Router();
 
-router.post("/insert", insert);
+router.post("/addEmployee", insert);
 router.post("/login", login);
 router.post("/updateNewTask", updateTask);
 router.get("/getAllUser", getAllUser);
