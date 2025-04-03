@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-
+import toast from 'react-hot-toast'
 export default function Sidebar() {
     const navigate = useNavigate()
     return (
@@ -47,7 +47,12 @@ export default function Sidebar() {
 
                 <div className="absolute bottom-0 w-full">
                     <button
-                        onClick={() => navigate("/")}
+                        onClick={() => {
+                            setTimeout(() => {
+                                toast.success("Logged out successfully");
+                                navigate("/");
+                            }, 3000);
+                        }}
                         className="w-full flex items-center space-x-3 px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-900/30 rounded-xl transition-all duration-300"
                     >
                         <i className="fas fa-sign-out-alt text-lg w-6"></i>

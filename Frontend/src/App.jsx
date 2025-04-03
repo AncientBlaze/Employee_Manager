@@ -9,6 +9,9 @@ import Tasks from './Components/Tasks.jsx';
 import Employees from './Components/Employees.jsx';
 import Settings from './Components/Settings.jsx';
 import ErrorPage from './ErrorPage.jsx';
+import RegisterPage from './Components/RegisterPage.jsx';
+import AboutUsPage from './Components/AboutUsPage.jsx';
+import ContactUsPage from './Components/ContactUsPage.jsx';
 
 const route = createBrowserRouter([
   {
@@ -18,6 +21,18 @@ const route = createBrowserRouter([
   {
     path: '/',
     element: <LogInPage />
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />
+  },
+  {
+    path: '/about',
+    element: <AboutUsPage />
+  },
+  {
+    path: '/contact',
+    element: <ContactUsPage />
   },
   {
     path: '/dashboard',

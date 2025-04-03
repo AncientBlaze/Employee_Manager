@@ -34,7 +34,6 @@ function Employees() {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
         try {
             axios.post("http://localhost:3000/user/addEmployee", formData)
                 .then((res) => {
@@ -66,7 +65,7 @@ function Employees() {
                     <h2 className="text-2xl font-semibold text-blue-400 mb-4">Employee List</h2>
                     <div className="bg-gray-800 rounded-lg p-4">
                         {allUser.length > 0 ? (
-                            <ul className="space-y-4">
+                            <ul className="space-y-4 gap-1 flex flex-col">
                                 {allUser.map((user) => (
                                     <Link key={user._id} to={`/employeeDetails/${user._id}`}>
                                         <li
@@ -113,7 +112,7 @@ function Employees() {
                                     value={formData.username}
                                     onChange={handleInputChange}
                                     className="w-full p-3 bg-gray-700 rounded-lg border border-gray-600 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    placeholder="Enter email"
+                                    placeholder="Enter Username"
                                     required
                                 />
                             </div>

@@ -92,14 +92,6 @@ function Dashboard() {
             <h1 className="text-4xl font-extrabold text-blue-400">Admin Dashboard</h1>
             <p className="text-gray-400 mt-2 text-lg">Manage tasks and employee activities efficiently</p>
           </div>
-          <div>
-            <button
-              onClick={() => navigate("/settings")}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-all"
-            >
-              Settings
-            </button>
-          </div>
         </header>
         <div className="bg-gray-800 rounded-xl p-6 mb-8 shadow-lg">
           <h2 className="text-3xl font-semibold mb-6 text-green-400">Create New Task</h2>
